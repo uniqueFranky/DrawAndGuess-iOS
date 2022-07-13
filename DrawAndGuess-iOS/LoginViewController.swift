@@ -66,7 +66,7 @@ extension LoginViewController {
         nameTextField.placeholder = "用户名"
         nameTextField.delegate = self
         nameTextField.returnKeyType = .next
-        nameTextField.clearButtonMode = .always
+        nameTextField.clearButtonMode = .whileEditing
         nameTextField.layer.borderWidth = 0
         nameTextField.layer.cornerRadius = 10
         
@@ -144,7 +144,7 @@ extension LoginViewController {
     
     func configureConstraints() {
         let constraints = [
-            inputStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: view.bounds.height / 4),
+            inputStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: view.bounds.height / 4.5),
             inputStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             inputStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             inputStackView.heightAnchor.constraint(equalToConstant: view.bounds.height / 4),
