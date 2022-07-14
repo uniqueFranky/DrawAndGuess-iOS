@@ -9,5 +9,10 @@ import Foundation
 
 class User: Codable {
     var userName: String
-    var userId: UUID
+    var userId: String
+    
+    init() {
+        userName = ""
+        userId = ""
+    }
 }

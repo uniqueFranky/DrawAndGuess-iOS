@@ -18,10 +18,20 @@ class LoginViewController: UIViewController {
     let inputStackView = UIStackView()
     let iconStackView = UIStackView()
     let tapRec = UITapGestureRecognizer()
+    var usr = User()
+    var ppsw = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        
+        //关闭APP时不能正常logout
+        NotificationCenter.default.addObserver(self, selector: #selector(didEnterBackground), name: UIScene.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didEnterBackground), name: UIApplication.willTerminateNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didEnterBackground), name: UIScene.didDisconnectNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIScene.willEnterForegroundNotification, object: nil)
+        
         view.backgroundColor = .white
         view.addSubview(loginBtn)
         view.addSubview(regBtn)
@@ -39,6 +49,11 @@ class LoginViewController: UIViewController {
         configureGestureRecgonizer()
         configureConstraints()
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        print("Disappear")
+    }
+
 
 
 }
@@ -50,7 +65,7 @@ extension LoginViewController {
         loginBtn.setTitle("登录", for: .normal)
         loginBtn.setTitleColor(.white, for: .normal)
         loginBtn.backgroundColor = .systemBlue
-        loginBtn.layer.cornerRadius = 10
+        loginBtn.layer.cornerRadius = view.bounds.width / 39
         loginBtn.addTarget(self, action: #selector(login), for: .touchUpInside)
         loginBtn.translatesAutoresizingMaskIntoConstraints = false
     }
@@ -194,16 +209,140 @@ extension LoginViewController {
 
 extension LoginViewController {
     @objc func login() {
-        print("login")
+        
+        guard let name = nameTextField.text, name != "" else {
+            presentOkAlert(title: "用户名为空", msg: "请输入用户名")
+            return
+        }
+        
+        guard let psw = pswTextField.text, psw != "" else {
+            presentOkAlert(title: "密码为空", msg: "请输入密码")
+            return
+        }
+        
+        guard let percentName = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            presentOkAlert(title: "用户名不合法", msg: "请输入合法的用户名")
+            return
+        }
+        let urlStr = urlPrefix + "/users/login" + "/" + percentName + "/" + psw
+        guard let url = URL(string: urlStr) else {
+            presentOkAlert(title: "系统错误", msg: "请稍后重试")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.allHTTPHeaderFields = [
+            "Connection": "close",
+        ]
+        
+        //Login Task
+        let task = URLSession.shared.dataTask(with: request) { dat, resp, err in
+            if err != nil {
+                self.presentOkAlert(title: "服务器错误", msg: err!.localizedDescription)
+                return
+            }
+
+            guard let data = dat, let response = resp as? HTTPURLResponse else {
+                self.presentOkAlert(title: "内部错误", msg: "")
+                return
+            }
+            
+            guard response.statusCode == 200 else {
+                guard let str = String(data: data, encoding: .utf8) else {
+                    self.presentOkAlert(title: "内部错误", msg: "")
+                    return
+                }
+                self.presentOkAlert(title: "登录失败", msg: str)
+                return
+            }
+            
+            guard let u = try? JSONDecoder().decode(User.self, from: data) else {
+                self.presentOkAlert(title: "内部错误", msg: "")
+                return
+            }
+            self.usr = u
+            self.presentOkAlert(title: "登录成功", msg: self.usr.userName)
+            self.ppsw = psw
+        }
+        task.resume()
     }
     
     @objc func reg() {
         print("register")
+        let regVC = RegisterViewController()
+        regVC.father = self
+        navigationController?.pushViewController(regVC, animated: true)
     }
     
     @objc func fireGesture(_ gestureRecgonizer: UITapGestureRecognizer) {
         nameTextField.resignFirstResponder()
         pswTextField.resignFirstResponder()
+    }
+    
+    @objc func didEnterBackground() {
+        print("Did Enter Background")
+        if usr.userName == "" {
+            return
+        }
+        let urlStr = urlPrefix + "/users/logout" + "/" + usr.userName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)! + "/" + usr.userId
+        guard let url = URL(string: urlStr) else {
+            return
+        }
+        print(urlStr)
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.allHTTPHeaderFields = [
+            "Connection": "close",
+        ]
+        let task = URLSession.shared.dataTask(with: request) { dat, resp, err in
+            print("sent")
+        }
+        task.resume()
+    }
+    
+    @objc func willEnterForeground() {
+        print("Will Enter Foreground")
+        if usr.userName == "" {
+            return
+        }
+        let urlStr = urlPrefix + "/users/login" + "/" + usr.userName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)! + "/" + ppsw
+        guard let url = URL(string: urlStr) else {
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.allHTTPHeaderFields = [
+            "Connection": "close",
+        ]
+        let task = URLSession.shared.dataTask(with: request) { dat, resp, err in
+            if err != nil {
+                self.presentOkAlert(title: "服务器错误", msg: err!.localizedDescription)
+                return
+            }
+
+            guard let data = dat, let response = resp as? HTTPURLResponse else {
+                self.presentOkAlert(title: "内部错误", msg: "")
+                return
+            }
+            
+            guard response.statusCode == 200 else {
+                guard let str = String(data: data, encoding: .utf8) else {
+                    self.presentOkAlert(title: "内部错误", msg: "")
+                    return
+                }
+                self.presentOkAlert(title: "登录失败", msg: str)
+                return
+            }
+            
+            guard let u = try? JSONDecoder().decode(User.self, from: data) else {
+                self.presentOkAlert(title: "内部错误", msg: "")
+                return
+            }
+            self.usr = u
+//            self.presentOkAlert(title: "登录成功", msg: self.usr.userName)
+            print("resume successfully")
+        }
+        task.resume()
     }
 }
 
@@ -219,4 +358,16 @@ extension LoginViewController: UITextFieldDelegate {
         return true
     }
     
+}
+
+extension UIViewController {
+    func presentOkAlert(title: String, msg: String) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: msg, preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "OK", style: .default)
+            alert.addAction(okAction)
+            self.present(alert, animated: true)
+        }
+        
+    }
 }
