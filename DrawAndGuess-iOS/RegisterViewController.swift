@@ -13,6 +13,7 @@ class RegisterViewController: UIViewController {
     let pswTextField = UITextField()
     let confirmTextField = UITextField()
     let inputStackView = UIStackView()
+    let tapRec = UITapGestureRecognizer()
     let regBtn = UIButton(type: .system)
     var father: LoginViewController!
     
@@ -30,6 +31,7 @@ class RegisterViewController: UIViewController {
         configureTextFields()
         configureInputStackView()
         configureRegBtn()
+        configureGestureRecgonizer()
         configureConstraints()
     }
     
@@ -99,6 +101,14 @@ extension RegisterViewController {
         regBtn.translatesAutoresizingMaskIntoConstraints = false
     }
     
+    func configureGestureRecgonizer() {
+        tapRec.numberOfTapsRequired = 1
+        tapRec.numberOfTouchesRequired = 1
+        tapRec.addTarget(self, action: #selector(fireGesture(_:)))
+        view.addGestureRecognizer(tapRec)
+        view.isUserInteractionEnabled = true
+    }
+    
     func configureConstraints() {
         let constraints = [
             inputStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -142,6 +152,13 @@ extension RegisterViewController: UITextFieldDelegate {
 }
 
 extension RegisterViewController {
+    
+    @objc func fireGesture(_ gestureRecgonizer: UITapGestureRecognizer) {
+        nameTextField.resignFirstResponder()
+        pswTextField.resignFirstResponder()
+        confirmTextField.resignFirstResponder()
+    }
+    
     @objc func reg() {
         print("register")
         
