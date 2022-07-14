@@ -17,6 +17,7 @@ class LoginViewController: UIViewController {
     let titleLabel = UILabel()
     let inputStackView = UIStackView()
     let iconStackView = UIStackView()
+    let tapRec = UITapGestureRecognizer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,6 +36,7 @@ class LoginViewController: UIViewController {
         configureTitleLabel()
         configureIconView()
         configureIconStackView()
+        configureGestureRecgonizer()
         configureConstraints()
     }
 
@@ -142,6 +144,14 @@ extension LoginViewController {
         
     }
     
+    func configureGestureRecgonizer() {
+        tapRec.numberOfTapsRequired = 1
+        tapRec.numberOfTouchesRequired = 1
+        tapRec.addTarget(self, action: #selector(fireGesture(_:)))
+        view.addGestureRecognizer(tapRec)
+        view.isUserInteractionEnabled = true
+    }
+    
     func configureConstraints() {
         let constraints = [
             inputStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: view.bounds.height / 4.5),
@@ -189,6 +199,11 @@ extension LoginViewController {
     
     @objc func reg() {
         print("register")
+    }
+    
+    @objc func fireGesture(_ gestureRecgonizer: UITapGestureRecognizer) {
+        nameTextField.resignFirstResponder()
+        pswTextField.resignFirstResponder()
     }
 }
 
