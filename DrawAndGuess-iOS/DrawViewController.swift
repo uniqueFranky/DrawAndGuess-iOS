@@ -7,9 +7,10 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class DrawViewController: UIViewController {
     let canvas = Canvas()
     override func loadView() {
+        super.loadView()
         self.view=canvas
     }
     let undoButton: UIButton = {
@@ -88,6 +89,16 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        forceOrientationLandscape()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        forceOrientationPortrait()
+    }
+    
     //横屏显示
     func forceOrientationLandscape() {
             let appdelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -126,7 +137,6 @@ class ViewController: UIViewController {
         stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive=true
         stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20).isActive=true
     }
-
 
 }
 

@@ -261,8 +261,18 @@ extension LoginViewController {
                 return
             }
             self.usr = u
-            self.presentOkAlert(title: "登录成功", msg: self.usr.userName)
-            self.ppsw = psw
+            DispatchQueue.main.async {
+                self.ppsw = psw
+                let alert = UIAlertController(title: "登录成功", message: "恭喜，登录成功！🎉", preferredStyle: .alert)
+                let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                    let drawVC = DrawViewController()
+                    self.navigationController?.pushViewController(drawVC, animated: true)
+                }
+                alert.addAction(okAction)
+                self.present(alert, animated: true)
+            }
+            
+            
         }
         task.resume()
     }
